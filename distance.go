@@ -27,7 +27,7 @@ type levenshteinDistance struct {
 	a, b []rune
 	max  int
 	mem  []int
-	left int
+	l, r int
 }
 
 func (d *levenshteinDistance) Calculate() int {
@@ -37,39 +37,43 @@ func (d *levenshteinDistance) Calculate() int {
 	if d.max >= 0 && len(d.a)-len(d.b) > d.max {
 		return -1
 	}
-	d.InitMem()
+	d.Init()
 	for i := range d.a {
 		if d.max >= 0 && d.TrimLeft() {
 			return -1
 		}
-		diag := d.mem[d.left]
-		d.mem[d.left]++
-		for j := d.left; j < len(d.b); j++ {
-			// if mem[j] >= k && diag > k && mem[j+1] >= k {
-			// 	break
-			// }
+		diag := d.mem[d.l]
+		d.mem[d.l]++
+		for j := d.l; j < d.r; j++ {
 			diagDistance := diag
 			if d.a[i] != d.b[j] {
 				diagDistance++
 			}
 			d.mem[j+1], diag = min(diagDistance, d.mem[j]+1, d.mem[j+1]+1), d.mem[j+1]
 		}
+		if d.max >= 0 && d.mem[d.r] < d.max && d.r < len(d.b) {
+			d.r++
+		}
 	}
 
 	return d.mem[len(d.b)]
 }
 
-// InitMem allocate and initiate memory for last calculated row
-func (d *levenshteinDistance) InitMem() {
+// Init allocate and initiate memory for last calculated row
+func (d *levenshteinDistance) Init() {
 	d.mem = make([]int, len(d.b)+1)
 	for i := range d.mem {
 		d.mem[i] = i
 	}
+	d.r = len(d.b)
+	if 0 <= d.max && d.max < d.r {
+		d.r = d.max
+	}
 }
 
 func (d *levenshteinDistance) TrimLeft() bool {
-	for ; d.mem[d.left] > d.max; d.left++ {
-		if d.left == len(d.b) {
+	for ; d.mem[d.l] > d.max; d.l++ {
+		if d.l >= d.r {
 
 			return true
 		}

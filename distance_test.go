@@ -19,6 +19,7 @@ func TestLevenshtein(t *testing.T) {
 		{"Something", "Som", -1},
 		{"Something", "Smoke the king", -1},
 		{"happiness", "princess", 4},
+		{"accabb", "bbabbabb", 4},
 	}
 
 	for _, c := range cases {
