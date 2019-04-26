@@ -38,9 +38,31 @@ func (d *levenshteinDistance) Calculate() int {
 		return -1
 	}
 	d.Init()
+	if d.Build() {
+
+		return d.mem[len(d.b)]
+	}
+
+	return -1
+}
+
+// Init allocate and initiate memory for last calculated row
+func (d *levenshteinDistance) Init() {
+	d.mem = make([]int, len(d.b)+1)
+	for i := range d.mem {
+		d.mem[i] = i
+	}
+	d.r = len(d.b)
+	if 0 <= d.max && d.max < d.r {
+		d.r = d.max
+	}
+}
+
+// Build distance matrix
+func (d *levenshteinDistance) Build() bool {
 	for i := range d.a {
 		if d.max >= 0 && d.TrimLeft() {
-			return -1
+			return false
 		}
 		diag := d.mem[d.l]
 		d.mem[d.l]++
@@ -56,19 +78,7 @@ func (d *levenshteinDistance) Calculate() int {
 		}
 	}
 
-	return d.mem[len(d.b)]
-}
-
-// Init allocate and initiate memory for last calculated row
-func (d *levenshteinDistance) Init() {
-	d.mem = make([]int, len(d.b)+1)
-	for i := range d.mem {
-		d.mem[i] = i
-	}
-	d.r = len(d.b)
-	if 0 <= d.max && d.max < d.r {
-		d.r = d.max
-	}
+	return true
 }
 
 func (d *levenshteinDistance) TrimLeft() bool {
