@@ -1,18 +1,22 @@
 language: go
 
 go:
-  - "1.10"
-  - "1.11"
-  - "1.12"
-  - "tip"
+- "1.10"
+- "1.11"
+- "1.12"
+- "tip"
+
+matrix:
+  allow_failures:
+  - go: tip
 
 install:
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
-  - go get -t ./...
+- curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
+- go get -t ./...
 
 script:
-  - go test -test.v -test.race -test.cover -test.coverprofile=coverage.txt -test.covermode=atomic ./...
-  - make lint todo
+- go test -test.v -test.race -test.cover -test.coverprofile=coverage.txt -test.covermode=atomic ./...
+- make lint todo
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
