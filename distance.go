@@ -18,9 +18,15 @@ type Distance func(a, b string, max int) int
 //
 // See Distance type for explanation of `max` param.
 func LevenshteinDistance(a, b string, max int) int {
+	if max == 0 {
+		if a == b {
+			return 0
+		}
+		return -1
+	}
 	d := &levenshteinDistance{a: []rune(a), b: []rune(b), max: max}
 
-	return d.Calculate()
+	return d.Do()
 }
 
 type levenshteinDistance struct {
@@ -30,7 +36,7 @@ type levenshteinDistance struct {
 	l, r int
 }
 
-func (d *levenshteinDistance) Calculate() int {
+func (d *levenshteinDistance) Do() int {
 	if len(d.a) < len(d.b) {
 		d.a, d.b = d.b, d.a
 	}
@@ -38,32 +44,28 @@ func (d *levenshteinDistance) Calculate() int {
 		return -1
 	}
 	d.Init()
-	if d.Build() {
 
-		return d.mem[len(d.b)]
-	}
-
-	return -1
+	return d.Calculate()
 }
 
-// Init allocate and initiate memory for last calculated row
+// Init allocate and initiate memory for last calculated row and setup right bound
 func (d *levenshteinDistance) Init() {
 	d.mem = make([]int, len(d.b)+1)
 	for i := range d.mem {
 		d.mem[i] = i
 	}
+	if d.max < 0 {
+		d.max = len(d.a)
+	}
 	d.r = len(d.b)
-	if 0 <= d.max && d.max < d.r {
+	if d.max < d.r {
 		d.r = d.max
 	}
 }
 
-// Build distance matrix
-func (d *levenshteinDistance) Build() bool {
+// Calculate distance matrix
+func (d *levenshteinDistance) Calculate() int {
 	for i := range d.a {
-		if d.max >= 0 && d.TrimLeft() {
-			return false
-		}
 		diag := d.mem[d.l]
 		d.mem[d.l]++
 		for j := d.l; j < d.r; j++ {
@@ -72,24 +74,19 @@ func (d *levenshteinDistance) Build() bool {
 				diagDistance++
 			}
 			d.mem[j+1], diag = min(diagDistance, d.mem[j]+1, d.mem[j+1]+1), d.mem[j+1]
+			if d.mem[j+1] > d.max && j == d.l {
+				d.l++
+			}
 		}
-		if d.max >= 0 && d.mem[d.r] < d.max && d.r < len(d.b) {
+		if d.r < len(d.b) && d.mem[d.r] <= d.max {
 			d.r++
 		}
-	}
-
-	return true
-}
-
-func (d *levenshteinDistance) TrimLeft() bool {
-	for ; d.mem[d.l] > d.max; d.l++ {
 		if d.l >= d.r {
-
-			return true
+			return -1
 		}
 	}
 
-	return false
+	return d.mem[len(d.b)]
 }
 
 func min(x ...int) int {

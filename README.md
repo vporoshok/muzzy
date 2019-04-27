@@ -10,8 +10,6 @@ Fuzzy search with n-grams and batteries
 
 ## Roadmap
 
-- Property-based tests;
-- Benchmarks;
 - Damerau optimization;
 - Similarity function;
 - n-gram spliting;
