@@ -2,6 +2,7 @@ package muzzy_test
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/vporoshok/muzzy"
 )
 
-func TestLevenshtein(t *testing.T) {
+func TestLevenshteinDistance(t *testing.T) {
 	cases := [...]struct {
 		a, b     string
 		max, res int
@@ -22,7 +23,7 @@ func TestLevenshtein(t *testing.T) {
 		{"Something", "Smoething", 2, 2},
 		{"Something", "Some", 5, 5},
 		{"Something", "Som", 5, -1},
-		{"Something", "Smoke the king", 5, -1},
+		{"Something", "Smoke the king", 7, 6},
 		{"happiness", "princess", 4, 4},
 		{"accabb", "bbabbabb", 4, 4},
 		{"abba", "abba", 0, 0},
@@ -34,7 +35,29 @@ func TestLevenshtein(t *testing.T) {
 	}
 }
 
-func BenchmarkLevensteinDistance(b *testing.B) {
+func TestDamerauDistance(t *testing.T) {
+	cases := [...]struct {
+		a, b     string
+		max, res int
+	}{
+		{"Something", "Smothing", 2, 2},
+		{"Something", "Smoething", 2, 1},
+		{"Something", "Some", 5, 5},
+		{"Something", "Som", 5, -1},
+		{"Something", "Smoke the king", 6, 6},
+		{"happiness", "princess", 4, 4},
+		{"accabb", "bbabbabb", 4, 4},
+		{"abba", "abba", 0, 0},
+		{"abba", "abbb", 0, -1},
+		{"abba", "baab", 2, 2},
+	}
+
+	for _, c := range cases {
+		assert.Equal(t, c.res, muzzy.DamerauDistance(c.a, c.b, c.max), "%s/%s", c.a, c.b)
+	}
+}
+
+func BenchmarkDistances(b *testing.B) {
 	join := func(chunks ...string) string { return strings.Join(chunks, " ") }
 	s1 := join(
 		"В ворота гостиницы губернского города NN въехала довольно красивая",
@@ -84,51 +107,35 @@ func BenchmarkLevensteinDistance(b *testing.B) {
 	)
 	b.ReportAllocs()
 	fmt.Printf(
-		"Calculating distance between |s1|=%d and |s2|=%d (%d)\n",
+		"Calculating distances between |s1|=%d and |s2|=%d (%d)\n",
 		len(s1), len(s2), muzzy.LevenshteinDistance(s1, s2, -1),
 	)
-	b.Run("bound with 10", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, 20)
-			_ = d
-		}
-	})
-	b.Run("bound with 15", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, 20)
-			_ = d
-		}
-	})
-	b.Run("bound with 20", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, 20)
-			_ = d
-		}
-	})
-	b.Run("bound with 500", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, 20)
-			_ = d
-		}
-	})
-	b.Run("bound with 1000", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, 20)
-			_ = d
-		}
-	})
-	b.Run("unbound", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			d := muzzy.LevenshteinDistance(s1, s2, -1)
-			_ = d
-		}
-	})
+	bounds := [...]int{10, 15, 20, 100, 200, 500, 1000, -1}
+	for _, bound := range bounds {
+		bound := bound
+		b.Run("Levenstein "+strconv.Itoa(bound), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				d := muzzy.LevenshteinDistance(s1, s2, bound)
+				_ = d
+			}
+		})
+		b.Run("Damerau "+strconv.Itoa(bound), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				d := muzzy.DamerauDistance(s1, s2, bound)
+				_ = d
+			}
+		})
+	}
 }
 
-func TestLevenshteinDistanceProperties(t *testing.T) {
+func TestDistanceProperties(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
 	properties := gopter.NewProperties(nil)
 
-	properties.Property("distance less or equal to changes", prop.ForAll(
+	properties.Property("Levenshtein distance less or equal to changes", prop.ForAll(
 		func(pair Pair) bool {
 			d := muzzy.LevenshteinDistance(string(pair.a), string(pair.b), -1)
 			if d > pair.changes {
@@ -138,7 +145,7 @@ func TestLevenshteinDistanceProperties(t *testing.T) {
 		},
 		PairGenerator(),
 	))
-	properties.Property("bounded distance same as unbounded", prop.ForAll(
+	properties.Property("Levenshtein bounded distance same as unbounded", prop.ForAll(
 		func(pair Pair) bool {
 			bo := muzzy.LevenshteinDistance(string(pair.a), string(pair.b), pair.changes)
 			un := muzzy.LevenshteinDistance(string(pair.a), string(pair.b), -1)
