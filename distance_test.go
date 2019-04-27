@@ -156,6 +156,17 @@ func TestDistanceProperties(t *testing.T) {
 		},
 		PairGenerator(),
 	))
+	properties.Property("Damerau–Levenshtein distance less or Levenshtein", prop.ForAll(
+		func(pair Pair) bool {
+			l := muzzy.LevenshteinDistance(string(pair.a), string(pair.b), pair.changes)
+			d := muzzy.DamerauDistance(string(pair.a), string(pair.b), pair.changes)
+			if d > l {
+				t.Logf("%s %d > %d", pair, d, l)
+			}
+			return d <= l
+		},
+		PairGenerator(),
+	))
 
 	properties.TestingRun(t)
 }

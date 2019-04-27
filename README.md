@@ -10,7 +10,6 @@ Fuzzy search with n-grams and batteries
 
 ## Roadmap
 
-- Damerau optimization;
 - Similarity function;
 - n-gram spliting;
 - n-gram index;
