@@ -2,10 +2,6 @@ package muzzy
 
 // Distance between strings
 //
-// Parameter `bound` is used to optimization. If you only intrested if distance
-// less or equal some number, put it number as bound. If distance more than this
-// number, function return -1. Use -1 as `bound` to calculate distance without
-// limitation.
 type Distance func(s1, s2 string, bound int) int
 
 // LevenshteinDistance calculate distance between strings
@@ -16,7 +12,10 @@ type Distance func(s1, s2 string, bound int) int
 // 'm' to 's'), but distance between "happiness" and "princess" is 4 (-'h',
 // -'a', 'p'/'r', +'c').
 //
-// See Distance type for explanation of `bound` param.
+// Parameter `bound` is used to optimization. If you only intrested if distance
+// less or equal some number, put it number as bound. If distance more than this
+// number, function return -1. Use -1 as `bound` to calculate distance without
+// limitation.
 func LevenshteinDistance(s1, s2 string, bound int) int {
 	if bound == 0 {
 		if s1 == s2 {
@@ -50,6 +49,9 @@ func DamerauDistance(s1, s2 string, bound int) int {
 	return b.Do(s1, s2, newDamerauCalculator)
 }
 
+// Calculator is an abstraction of handling prefix-distance matrix to
+// isolate implementation with one row (Levenshtein distance) and two rows
+// (Damerau–Levenshtein distance).
 type calculator interface {
 	Reset(int)
 	Calc(int, int) int
@@ -169,12 +171,12 @@ func (lc *damerauCalculator) Calc(i, j int) int {
 	if lc.s1[i] != lc.s2[j] {
 		dd++
 	}
-	dp := lc.buff[0] + 1
-	if i == 0 || j == 0 || lc.s1[i-1] != lc.s2[j] || lc.s1[i] != lc.s2[j-1] {
-		dp++
+	if i > 0 && j > 0 && lc.s1[i-1] == lc.s2[j] && lc.s1[i] == lc.s2[j-1] {
+
+		return lc.rotate(j+1, min(dd, lc.last[j]+1, lc.last[j+1]+1, lc.buff[0]+1))
 	}
 
-	return lc.rotate(j+1, min(dd, lc.last[j]+1, lc.last[j+1]+1, dp))
+	return lc.rotate(j+1, min(dd, lc.last[j]+1, lc.last[j+1]+1))
 }
 
 func (lc *damerauCalculator) rotate(j, next int) int {

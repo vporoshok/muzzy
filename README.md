@@ -10,8 +10,11 @@ Fuzzy search with n-grams and batteries
 
 ## Roadmap
 
-- Similarity function;
+- Jaro similarity;
+- Jaro–Winkler similarity;
+- cartesian tree optimization;
 - n-gram spliting;
+- n-gram similarity;
 - n-gram index;
 - n-gram index search;
 - Skip-gram;
