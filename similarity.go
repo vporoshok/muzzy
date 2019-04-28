@@ -42,13 +42,12 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 			return 0
 		}
 		return 1 - float64(distance)/max
-	case Jaro:
+
+	default:
 		s := JaroSimilarity(s1, s2)
 		if s < threshold {
 			return 0
 		}
 		return s
 	}
-
-	return 0
 }

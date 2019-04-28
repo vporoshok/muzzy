@@ -1,5 +1,7 @@
 package muzzy
 
+import "sync"
+
 // JaroSimilarity return how close s1 to s2
 func JaroSimilarity(s1, s2 string) float64 {
 
@@ -23,7 +25,7 @@ func newJaroCalculator(s1, s2 string) *jaroCalculator {
 }
 
 func (jc *jaroCalculator) Do() float64 {
-	m := jc.FindMatches()
+	m := jc.FindMatchesCartesian()
 	if m == 0 {
 		return 0
 	}
@@ -33,25 +35,25 @@ func (jc *jaroCalculator) Do() float64 {
 	return (m/n1 + m/n2 + (m-t)/m) / 3
 }
 
-func (jc *jaroCalculator) FindMatches() float64 {
+func (jc *jaroCalculator) FindMatchesCartesian() float64 {
 	eps := len(jc.s2) >> 1
+	tree := newCartesianTree()
+	for i := 0; i < eps; i++ {
+		tree.Add(jc.s2[i])
+	}
 	m := 0.0
 	for i := range jc.s1 {
-		l := 0
-		if i-eps > 0 {
-			l = i - eps
-		}
-		r := len(jc.s2)
 		if i+eps < len(jc.s2) {
-			r = i + eps
+			tree.Add(jc.s2[i+eps])
 		}
-		for j := l; j < r; j++ {
-			if jc.s1[i] == jc.s2[j] && !jc.l2[j] {
-				jc.l1[i] = true
-				jc.l2[j] = true
-				m++
-				break
-			}
+		if tree.Peek() < i-eps {
+			tree.Pop()
+		}
+		j := tree.SearchAndDelete(jc.s1[i])
+		if j != -1 {
+			jc.l1[i] = true
+			jc.l2[j] = true
+			m++
 		}
 	}
 
@@ -76,4 +78,127 @@ func (jc *jaroCalculator) FindTranspositions() float64 {
 	}
 
 	return t
+}
+
+type node struct {
+	priority int
+	key      rune
+	left     *node
+	right    *node
+}
+
+func (n *node) Add(m *node) {
+	for {
+		if m.key < n.key {
+			if n.left == nil {
+				n.left = m
+				return
+			}
+			n = n.left
+
+		} else {
+			if n.right == nil {
+				n.right = m
+				return
+			}
+			n = n.right
+		}
+	}
+}
+
+func (n *node) Search(key rune) (res, parent *node) {
+	res = n
+	for res != nil {
+		if key == res.key {
+			return
+		}
+		parent = res
+		if key < res.key {
+			res = res.left
+		} else {
+			res = res.right
+		}
+	}
+
+	return nil, nil
+}
+
+type cartesianTree struct {
+	root *node
+	pool *sync.Pool
+	next int
+}
+
+func newCartesianTree() *cartesianTree {
+
+	return &cartesianTree{
+		pool: &sync.Pool{
+			New: func() interface{} { return &node{} },
+		},
+	}
+}
+
+func (tree *cartesianTree) Add(key rune) {
+	n := tree.pool.Get().(*node)
+
+	n.priority = tree.next
+	n.key = key
+	n.left = nil
+	n.right = nil
+
+	if tree.root == nil {
+		tree.root = n
+	} else {
+		tree.root.Add(n)
+	}
+
+	tree.next++
+}
+
+func (tree *cartesianTree) SearchAndDelete(key rune) int {
+	n, p := tree.root.Search(key)
+	if n == nil {
+		return -1
+	}
+	m := tree.Merge(n.left, n.right)
+	switch {
+	case p == nil:
+		tree.root = m
+	case p.left == n:
+		p.left = m
+	default:
+		p.right = m
+	}
+	res := n.priority
+	tree.pool.Put(n)
+
+	return res
+}
+
+func (tree *cartesianTree) Peek() int {
+	return tree.root.priority
+}
+
+func (tree *cartesianTree) Pop() {
+	m := tree.Merge(tree.root.left, tree.root.right)
+	*tree.root = *m
+	tree.pool.Put(m)
+}
+
+func (tree *cartesianTree) Merge(n, m *node) *node {
+	if n == nil {
+		return m
+	}
+	if m == nil {
+		return n
+	}
+	if m.priority < n.priority {
+		n, m = m, n
+	}
+	if m.key < n.key {
+		n.left = tree.Merge(n.left, m)
+	} else {
+		n.right = tree.Merge(n.right, m)
+	}
+	return n
 }
