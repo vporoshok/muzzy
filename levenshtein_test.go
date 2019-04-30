@@ -23,7 +23,7 @@ func TestLevenshteinDistance(t *testing.T) {
 		{"Something", "Smoething", 2, 2},
 		{"Something", "Some", 5, 5},
 		{"Something", "Som", 5, -1},
-		{"Something", "Smoke the king", 7, 6},
+		{"Something", "Smoke the king", 5, -1},
 		{"happiness", "princess", 4, 4},
 		{"accabb", "bbabbabb", 4, 4},
 		{"abba", "abba", 0, 0},
