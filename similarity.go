@@ -11,6 +11,7 @@ const (
 	Levenshtein similarityAlgorithm = iota
 	DamerauLevenshtein
 	Jaro
+	JaroWinkler
 )
 
 // Similarity of two strings with given algorithm
@@ -43,8 +44,15 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 		}
 		return 1 - float64(distance)/max
 
-	default:
+	case Jaro:
 		s := JaroSimilarity(s1, s2)
+		if s < threshold {
+			return 0
+		}
+		return s
+
+	default:
+		s := JaroWinklerSimilarity(s1, s2)
 		if s < threshold {
 			return 0
 		}

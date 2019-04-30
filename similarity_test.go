@@ -12,33 +12,33 @@ import (
 
 func TestSimilarity(t *testing.T) {
 	cases := [...]struct {
-		s1, s2    string
-		threshold float64
-		L, D, J   float64
+		s1, s2     string
+		threshold  float64
+		L, D, J, W float64
 	}{
 		{
 			"happiness", "princess", 0,
-			0.555, 0.555, 0.805,
+			0.555, 0.555, 0.805, 0.805,
 		},
 		{
 			"fluffy", "fulffy", 0,
-			0.666, 0.833, 0.888,
+			0.666, 0.833, 0.888, 0.899,
 		},
 		{
 			"", "", 0,
-			1, 1, 1,
+			1, 1, 1, 1,
 		},
 		{
 			"", "any", 0,
-			0, 0, 0,
+			0, 0, 0, 0,
 		},
 		{
 			"happiness", "princess", 0.9,
-			0, 0, 0,
+			0, 0, 0, 0,
 		},
 		{
 			"abcde", "fghij", 0,
-			0, 0, 0,
+			0, 0, 0, 0,
 		},
 	}
 
@@ -51,6 +51,8 @@ func TestSimilarity(t *testing.T) {
 				muzzy.Similarity(c.s1, c.s2, muzzy.DamerauLevenshtein, c.threshold), 0.001)
 			assert.InDelta(t, c.J,
 				muzzy.Similarity(c.s1, c.s2, muzzy.Jaro, c.threshold), 0.001)
+			assert.InDelta(t, c.W,
+				muzzy.Similarity(c.s1, c.s2, muzzy.JaroWinkler, c.threshold), 0.001)
 		})
 	}
 }

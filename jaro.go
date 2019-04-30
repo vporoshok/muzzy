@@ -2,6 +2,23 @@ package muzzy
 
 import "sync"
 
+// WinklerScalingFactor how much the score is adjusted upwards for having common prefixes
+const WinklerScalingFactor = 0.1
+
+// JaroWinklerSimilarity return how close s1 and s2 increase similarity of same prefixed
+func JaroWinklerSimilarity(s1, s2 string) float64 {
+	s := JaroSimilarity(s1, s2)
+	l, r1, r2 := 0, []rune(s1), []rune(s2)
+	n := len(r1)
+	if len(r2) < n {
+		n = len(r2)
+	}
+	for ; l < n && r1[l] == r2[l]; l++ {
+	}
+
+	return s + float64(l)*(1-s)*WinklerScalingFactor
+}
+
 // JaroSimilarity return how close s1 to s2
 func JaroSimilarity(s1, s2 string) float64 {
 
