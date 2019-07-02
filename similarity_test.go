@@ -12,33 +12,39 @@ import (
 
 func TestSimilarity(t *testing.T) {
 	cases := [...]struct {
-		s1, s2     string
-		threshold  float64
-		L, D, J, W float64
+		s1, s2        string
+		threshold     float64
+		L, D, J, W, N float64
 	}{
 		{
 			"happiness", "princess", 0,
-			0.555, 0.555, 0.805, 0.805,
+			0.555, 0.555, 0.805, 0.805, 0.286,
 		},
 		{
 			"fluffy", "fulffy", 0,
-			0.666, 0.833, 0.888, 0.899,
+			0.666, 0.833, 0.888, 0.899, 0.5,
 		},
 		{
 			"", "", 0,
-			1, 1, 1, 1,
+			1, 1, 1, 1, 1,
 		},
 		{
 			"", "any", 0,
-			0, 0, 0, 0,
+			0, 0, 0, 0, 0,
 		},
 		{
 			"happiness", "princess", 0.9,
-			0, 0, 0, 0,
+			0, 0, 0, 0, 0,
 		},
 		{
 			"abcde", "fghij", 0,
-			0, 0, 0, 0,
+			0, 0, 0, 0, 0,
+		},
+		{
+			"Здесь какой-то действительно большой и длинный текст с опечаткой",
+			"Здесь какой-то действительно большой и длинный текст с очепаткой",
+			0.9,
+			0.983, 0.983, 0.989, 1.047, 0.921,
 		},
 	}
 
@@ -53,6 +59,8 @@ func TestSimilarity(t *testing.T) {
 				muzzy.Similarity(c.s1, c.s2, muzzy.Jaro, c.threshold), 0.001)
 			assert.InDelta(t, c.W,
 				muzzy.Similarity(c.s1, c.s2, muzzy.JaroWinkler, c.threshold), 0.001)
+			assert.InDelta(t, c.N,
+				muzzy.Similarity(c.s1, c.s2, muzzy.NGram, c.threshold), 0.001)
 		})
 	}
 }
@@ -121,6 +129,13 @@ func BenchmarkSimilarity(b *testing.B) {
 	b.Run("Jaro", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			d := muzzy.Similarity(s1, s2, muzzy.Jaro, 0)
+			_ = d
+		}
+	})
+	b.Run("3-grams", func(b *testing.B) {
+		splitter := muzzy.NGramSplitter(3, true)
+		for i := 0; i < b.N; i++ {
+			d := splitter.Similarity(s1, s2)
 			_ = d
 		}
 	})

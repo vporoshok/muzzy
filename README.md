@@ -10,9 +10,5 @@ Fuzzy search with n-grams and batteries
 
 ## Roadmap
 
-- n-gram spliting;
-- n-gram similarity;
-- n-gram index;
-- n-gram index search;
 - Skip-gram;
 - Marshaling;

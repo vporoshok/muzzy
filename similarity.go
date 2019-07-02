@@ -12,6 +12,7 @@ const (
 	DamerauLevenshtein
 	Jaro
 	JaroWinkler
+	NGram
 )
 
 // Similarity of two strings with given algorithm
@@ -29,6 +30,7 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 		return 0
 	}
 
+	var d float64
 	switch algo {
 	case Levenshtein, DamerauLevenshtein:
 		max := math.Max(float64(len(s1)), float64(len(s2)))
@@ -42,20 +44,19 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 		if distance < 0 {
 			return 0
 		}
-		return 1 - float64(distance)/max
+		d = 1 - float64(distance)/max
 
 	case Jaro:
-		s := JaroSimilarity(s1, s2)
-		if s < threshold {
-			return 0
-		}
-		return s
+		d = JaroSimilarity(s1, s2)
+
+	case JaroWinkler:
+		d = JaroWinklerSimilarity(s1, s2)
 
 	default:
-		s := JaroWinklerSimilarity(s1, s2)
-		if s < threshold {
-			return 0
-		}
-		return s
+		d = NGramSplitter(3, true).Similarity(s1, s2)
 	}
+	if d < threshold {
+		return 0
+	}
+	return d
 }
