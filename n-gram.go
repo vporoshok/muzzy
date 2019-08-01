@@ -105,6 +105,11 @@ func (index *SplitIndex) Get(i int) string {
 //
 // Return -1 if no string n-gram found in index.
 func (index *SplitIndex) Search(s string) int {
+	for i := range index.strings {
+		if index.strings[i] == s {
+			return i
+		}
+	}
 	ngrams := index.Split(s)
 	counters := map[int]int{}
 	for _, ngram := range ngrams {
