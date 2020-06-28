@@ -46,6 +46,12 @@ func TestSimilarity(t *testing.T) {
 			0.9,
 			0.983, 0.983, 0.989, 1.047, 0.921,
 		},
+		{
+			"aab",
+			"baa",
+			0,
+			0.333, 0.333, 0.777, 0.777, 0,
+		},
 	}
 
 	for _, c := range cases {
@@ -65,6 +71,7 @@ func TestSimilarity(t *testing.T) {
 	}
 }
 
+//nolint:funlen // long text for test
 func BenchmarkSimilarity(b *testing.B) {
 	join := func(chunks ...string) string { return strings.Join(chunks, " ") }
 	s1 := join(
@@ -113,6 +120,7 @@ func BenchmarkSimilarity(b *testing.B) {
 		"придержал рукою картуз, чуть не слетевший от ветра, и пошел своей",
 		"дорогой.",
 	)
+
 	b.ReportAllocs()
 	b.Run("Levenstein", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

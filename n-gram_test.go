@@ -18,6 +18,7 @@ type SplitIndexSuite struct {
 func (s *SplitIndexSuite) SetupSuite() {
 	corpus, err := ioutil.ReadFile(filepath.Join("testdata", "dead_souls.txt"))
 	s.Require().NoError(err)
+
 	lines := strings.Split(string(corpus), "\n")
 	splitter := muzzy.NGramSplitter(3, true)
 	s.index = muzzy.NewSplitIndex(splitter)

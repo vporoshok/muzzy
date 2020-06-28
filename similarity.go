@@ -6,7 +6,7 @@ import (
 
 type similarityAlgorithm int8
 
-// Available algorithms to calculate strings similarity
+// Available algorithms to calculate strings similarity.
 const (
 	Levenshtein similarityAlgorithm = iota
 	DamerauLevenshtein
@@ -27,23 +27,28 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 		if s2 == "" {
 			return 1
 		}
+
 		return 0
 	}
 
 	var d float64
+
 	switch algo {
 	case Levenshtein, DamerauLevenshtein:
 		max := math.Max(float64(len(s1)), float64(len(s2)))
 		bound := int(math.Floor((1 - threshold) * max))
+
 		var distance int
 		if algo == Levenshtein {
 			distance = LevenshteinDistance(s1, s2, bound)
 		} else {
 			distance = DamerauDistance(s1, s2, bound)
 		}
+
 		if distance < 0 {
 			return 0
 		}
+
 		d = 1 - float64(distance)/max
 
 	case Jaro:
@@ -53,10 +58,12 @@ func Similarity(s1, s2 string, algo similarityAlgorithm, threshold float64) floa
 		d = JaroWinklerSimilarity(s1, s2)
 
 	default:
-		d = NGramSplitter(3, true).Similarity(s1, s2)
+		d = NGramSplitter(defaultNGramSize, true).Similarity(s1, s2)
 	}
+
 	if d < threshold {
 		return 0
 	}
+
 	return d
 }

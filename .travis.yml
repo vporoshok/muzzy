@@ -16,7 +16,7 @@ install:
 
 script:
 - go test -test.v -test.race -test.cover -test.coverprofile=coverage.txt -test.covermode=atomic ./...
-- make lint todo
+- make lint
 
 after_success:
 - bash <(curl -s https://codecov.io/bash)
