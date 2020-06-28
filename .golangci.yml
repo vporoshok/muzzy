@@ -128,6 +128,14 @@ linters-settings:
         paramsOnly: true
       rangeValCopy:
         sizeThreshold: 32
+  wsl:
+    settings:
+      allow-cuddle-declarations: true
+      allow-assign-and-anything: true
+  gomnd:
+    settings:
+      mnd:
+        ignored-numbers: 1
 
 linters:
   enable-all: true

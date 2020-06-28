@@ -57,6 +57,7 @@ func TestDamerauDistance(t *testing.T) {
 	}
 }
 
+//nolint:funlen // long text for test
 func BenchmarkDistances(b *testing.B) {
 	join := func(chunks ...string) string { return strings.Join(chunks, " ") }
 	s1 := join(
@@ -105,11 +106,13 @@ func BenchmarkDistances(b *testing.B) {
 		"придержал рукою картуз, чуть не слетевший от ветра, и пошел своей",
 		"дорогой.",
 	)
+
 	b.ReportAllocs()
 	fmt.Printf(
 		"Calculating distances between |s1|=%d and |s2|=%d (%d)\n",
 		len(s1), len(s2), muzzy.LevenshteinDistance(s1, s2, -1),
 	)
+
 	bounds := [...]int{10, 15, 20, 100, 200, 500, 1000, -1}
 	for _, bound := range bounds {
 		bound := bound
@@ -177,16 +180,17 @@ type Pair struct {
 }
 
 func (pair Pair) String() string {
-
 	return fmt.Sprintf("%s / %s [%d]", string(pair.a), string(pair.b), pair.changes)
 }
 
 func PairShrinker(v interface{}) gopter.Shrink {
 	pair := v.(Pair)
 	length := len(pair.a)
+
 	if length > len(pair.b) {
 		length = len(pair.b)
 	}
+
 	offset := 0
 	chunk := length >> 1
 
@@ -195,9 +199,11 @@ func PairShrinker(v interface{}) gopter.Shrink {
 			offset = 0
 			chunk >>= 1
 		}
+
 		if chunk == 0 {
 			return nil, false
 		}
+
 		next := Pair{
 			pair.a[offset : offset+chunk],
 			pair.b[offset : offset+chunk],
@@ -210,18 +216,21 @@ func PairShrinker(v interface{}) gopter.Shrink {
 }
 
 func PairGenerator() gopter.Gen {
-
 	return func(params *gopter.GenParameters) *gopter.GenResult {
 		a := gen.SliceOf(gen.Rune())(params).Result.([]rune)
 		n := 10
+
 		if len(a) < n {
 			n = len(a) / 2
 		}
+
 		b := make([]rune, len(a))
 		copy(b, a)
+
 		for i := 0; i < n; i++ {
 			x := params.Rng.Intn(len(b))
 			y := params.Rng.Intn(len(b))
+
 			switch params.Rng.Intn(3) {
 			case 0:
 				copy(b[x:], b[x+1:])

@@ -1,4 +1,4 @@
-all         : test cover lint todo
+all         : test cover lint
 
 test        :
 	@echo "Testing..."
@@ -14,11 +14,5 @@ cover       :
 lint        :
 	@echo "Linting..."
 	@golangci-lint run
-	@echo "PASS"
-	@echo ""
-
-todo        :
-	@echo "Check unreviewed todo..."
-	@! grep -rn TODO . | grep -v '\(vendor\|git\|idea\|build\)' | grep -v '#[0-9]'
 	@echo "PASS"
 	@echo ""

@@ -21,8 +21,10 @@ func LevenshteinDistance(s1, s2 string, bound int) int {
 		if s1 == s2 {
 			return 0
 		}
+
 		return -1
 	}
+
 	b := &bounder{
 		bound: bound,
 	}
@@ -40,8 +42,10 @@ func DamerauDistance(s1, s2 string, bound int) int {
 		if s1 == s2 {
 			return 0
 		}
+
 		return -1
 	}
+
 	b := &bounder{
 		bound: bound,
 	}
@@ -71,37 +75,46 @@ func (b *bounder) Do(s1, s2 string, calc func(r1, r2 []rune) calculator) int {
 	if len(r1) < len(r2) {
 		r1, r2 = r2, r1
 	}
+
 	if b.bound >= 0 && len(r1)-len(r2) > b.bound {
 		return -1
 	}
+
 	b.width = len(r2)
 	b.height = len(r1)
+
 	if b.bound < 0 {
 		b.bound = len(r1)
 	}
+
 	b.right = len(r2)
 	if b.bound < b.right {
 		b.right = b.bound
 	}
+
 	b.calc = calc(r1, r2)
 
 	return b.Calculate()
 }
 
-// Calculate distance matrix
+// Calculate distance matrix.
 func (b *bounder) Calculate() int {
 	var n int
+
 	for i := 0; i < b.height; i++ {
 		b.calc.Reset(b.left)
+
 		for j := b.left; j < b.right; j++ {
 			n = b.calc.Calc(i, j)
 			if n > b.bound && j == b.left {
 				b.left++
 			}
 		}
+
 		if b.right < b.width && n <= b.bound {
 			b.right++
 		}
+
 		if b.left >= b.right {
 			return -1
 		}
@@ -135,6 +148,7 @@ func (lc *levenshteinCalculator) Calc(i, j int) int {
 	if lc.s1[i] != lc.s2[j] {
 		dd++
 	}
+
 	lc.last[j+1], lc.diag = min(dd, lc.last[j]+1, lc.last[j+1]+1), lc.last[j+1]
 
 	return lc.last[j+1]
@@ -171,8 +185,8 @@ func (lc *damerauCalculator) Calc(i, j int) int {
 	if lc.s1[i] != lc.s2[j] {
 		dd++
 	}
-	if i > 0 && j > 0 && lc.s1[i-1] == lc.s2[j] && lc.s1[i] == lc.s2[j-1] {
 
+	if i > 0 && j > 0 && lc.s1[i-1] == lc.s2[j] && lc.s1[i] == lc.s2[j-1] {
 		return lc.rotate(j+1, min(dd, lc.last[j]+1, lc.last[j+1]+1, lc.buff[0]+1))
 	}
 
