@@ -90,7 +90,7 @@ func (jc *jaroCalculator) FindMatchesCartesian() float64 {
 			tree.Add(jc.s2[i+eps])
 		}
 
-		if tree.Peek() < i-eps {
+		if !tree.Empty() && tree.Peek() < i-eps {
 			tree.Pop()
 		}
 
@@ -223,14 +223,22 @@ func (tree *cartesianTree) SearchAndDelete(key rune) int {
 	return res
 }
 
+func (tree *cartesianTree) Empty() bool {
+	return tree.root == nil
+}
+
 func (tree *cartesianTree) Peek() int {
 	return tree.root.priority
 }
 
 func (tree *cartesianTree) Pop() {
 	m := tree.Merge(tree.root.left, tree.root.right)
-	*tree.root = *m
-	tree.pool.Put(m)
+	if m == nil {
+		tree.root = nil
+	} else {
+		*tree.root = *m
+		tree.pool.Put(m)
+	}
 }
 
 func (tree *cartesianTree) Merge(n, m *node) *node {

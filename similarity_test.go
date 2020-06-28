@@ -46,6 +46,12 @@ func TestSimilarity(t *testing.T) {
 			0.9,
 			0.983, 0.983, 0.989, 1.047, 0.921,
 		},
+		{
+			"aab",
+			"baa",
+			0,
+			0.333, 0.333, 0.777, 0.777, 0,
+		},
 	}
 
 	for _, c := range cases {
